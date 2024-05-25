@@ -11,84 +11,63 @@ async function main() {
   console.log(completion.choices[0]);
 }
 
-async function generateLinkedInPost(topic, client_profile) {
+async function generateBulletPost(topic, client_profile) {
   try {
-    // Generate the hook
-    const hookResponse = await openai.chat.completions.create({
-      messages: [
-        {
-          role: "user",
-          content: `Create a compelling one-liner to grab attention for a LinkedIn post about ${topic}. The tone should be ${client_profile["personal_brand"]} and it should reflect the goal of ${client_profile["primary_goals"]}. It should be a rhetorical question thats counter intuitive to ${topic} and it should be 10 tokens.`,
-        },
-      ],
-      model: "gpt-4o",
-    });
-
-    let postHook = hookResponse.choices[0].message.content.trim();
-
-    if (postHook.startsWith('"') && postHook.endsWith('"')) {
-      postHook = postHook.slice(1, -1);
-    }
-
-    console.log(postHook);
-
-    const rehookResponse = await openai.chat.completions.create({
-      messages: [
-        {
-          role: "user",
-          content: `Create a one-liner follow-up that answers the question in ${postHook} and provides stability to ${topic}. it should be 10 tokens`,
-        },
-      ],
-      model: "gpt-4o",
-    });
-
-    let rehook = rehookResponse.choices[0].message.content.trim();
-
-    if (rehook.startsWith('"') && rehook.endsWith('"')) {
-      rehook = rehook.slice(1, -1);
-    }
-
-    console.log(rehook);
-
-    const stepsResponse = await openai.chat.completions.create({
+    const bulletPostResponse = await openai.chat.completions.create({
       messages: [
         {
           role: "system",
-          content: "dont format any of the topic lines",
+          content: "Dont label anything. I want the response to be ready to post on LinkedIn. Also dont put any dashes, bullets, atricks or anything. all i want is plain text"
         },
         {
           role: "user",
-          content: `Give a 3 bullets about ${topic} that follows ${clientProfile["personal_brand"]} and has a tone of ${clientProfile["content_preferences"]}. each step should have a topic line and the next line is the info. each step should be 20 tokens long`,
+          content: `Create a compelling one-liner to grab attention for a LinkedIn post about ${topic}. The tone should be ${client_profile["personal_brand"]} and it should reflect the goal of ${client_profile["primary_goals"]}. It should be a rhetorical question thats counter intuitive to ${topic} and it should be 10 tokens. skip a line, then on the next line Create a one-liner follow-up that answers the question in hook. it should be 10 tokens. leave a blank line, and then in the next line, Give a 5 bullets about the hook and what it means that follows ${clientProfile["personal_brand"]} and has a tone of ${clientProfile["content_preferences"]}. each step should have a topic line and the next line is the info. Make the info part two sentences. Skip a line, and on the next line put a statement that leaves the reader feeling the authors tone of ${clientProfile["mission"]}. Should be an action statement. It should be 15 tokens`,
         },
       ],
       model: "gpt-4o",
     });
 
-    let steps = stepsResponse.choices[0].message.content.trim();
+    let bulletPost = bulletPostResponse.choices[0].message.content.trim();
 
-    if (steps.startsWith('"') && steps.endsWith('"')) {
-      steps = steps.slice(1, -1);
+    if (bulletPost.startsWith('"') && bulletPost.endsWith('"')) {
+      bulletPost = bulletPost.slice(1, -1);
     }
 
-    console.log(steps);
+    console.log(bulletPost);
+  } catch (error) {
+    console.error("Error generating LinkedIn post:", error);
+  }
+}
 
-    const endingResponse = await openai.chat.completions.create({
+async function generateStoryPost(topic, client_profile) {
+  try {
+    const bulletPostResponse = await openai.chat.completions.create({
       messages: [
         {
+          role: "system",
+          content: "Dont label anything. I want the response to be ready to post on LinkedIn. Also dont put any dashes, bullets, atricks or anything. all i want is plain text"
+        },
+        {
           role: "user",
-          content: `Leave the reader feeling the authors tone of ${clientProfile["mission"]}. Should be an action statement. It should be 15 tokens`,
+          content: `first line: Attention grabber about a lesson you learned regarding ${topic}. It should be ten tokens
+          skip a line and on the next one write 3 senteces telling a bit of the story where you lerened the lesson. the tone should be ${clientProfile["personal_brand"]} and should be about ${clientProfile["mission"]}
+          skip a line and on the next one write a 1 one liner that is the crux of the story
+          skip a line and on the next one finish the story and end off with the lesson you learned
+          skip a line and on the next one tell the reader how they should try to impelement the lesson too in two senteces
+          skip a line and on the next one call to action that follows the story.
+          the story should be corporate appropriate`,
         },
       ],
       model: "gpt-4o",
     });
 
-    let ending = endingResponse.choices[0].message.content.trim();
+    let bulletPost = bulletPostResponse.choices[0].message.content.trim();
 
-    if (ending.startsWith('"') && ending.endsWith('"')) {
-      ending = ending.slice(1, -1);
+    if (bulletPost.startsWith('"') && bulletPost.endsWith('"')) {
+      bulletPost = bulletPost.slice(1, -1);
     }
 
-    console.log(ending);
+    console.log(bulletPost);
   } catch (error) {
     console.error("Error generating LinkedIn post:", error);
   }
@@ -111,5 +90,5 @@ const clientProfile = {
     "engagement metrics (clicks and interactions), lead conversions",
 };
 
-const topic = "LLMs";
-generateLinkedInPost(topic, clientProfile);
+const topic = "AI in videogames";
+generateStoryPost(topic, clientProfile);
