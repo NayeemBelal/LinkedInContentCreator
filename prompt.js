@@ -1,94 +1,191 @@
 import OpenAI from "openai";
 
 const openai = new OpenAI();
+export const posts = [];
 
-async function main() {
-  const completion = await openai.chat.completions.create({
-    messages: [{ role: "user", content: "You are a helpful assistant." }],
-    model: "gpt-4o",
+export async function generateLiveContent(liveContentLink, liveContentTopics) {
+  for (let i = 0; i < liveContentTopics.length; i++) {
+    if (liveContentTopics[i] != "") {
+      console.log("Generate post #" + (i + 1));
+      try {
+        const liveContentResponse = await openai.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content:
+                "Dont label anything. I want the response to be ready to post on LinkedIn. Also dont put any dashes, bullets, atricks or anything. all i want is plain text",
+            },
+            {
+              role: "user",
+              content: `Given the article link ${liveContentLink[i]}, create a concise and engaging LinkedIn post. Start with a catchy hook sentence to grab attention. Follow with a three-sentence summary that captures the main points of the article. Then, provide a personal opinion on the topic to add a unique perspective. Conclude with a humorous one-liner that ties back to the theme of the article. The post should be easy to read, with each section clearly separated, and without directly mentioning the article link or title.`,
+            },
+          ],
+          model: "gpt-4",
+        });
+
+        let liveContentPost =
+          liveContentResponse.choices[0].message.content.trim();
+
+        image_url = imageGeneration(liveContentTopics[i]);
+
+        const newPost = {
+          topic: liveContentTopics[i],
+          content: liveContentPost,
+          image_url: image_url,
+        };
+
+        posts.push(newPost);
+      } catch (error) {
+        console.error("Error generating LinkedIn post:", error);
+      }
+    }
+  }
+}
+
+export async function generateOpposingViews(opposingViewsTopics) {
+  for (let i = 0; i < opposingViewsTopics.length; i++) {
+    if (opposingViewsTopics[i] != "") {
+      console.log("Generate post #" + (i + 1));
+      try {
+        const opposingViewsResponse = await openai.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content:
+                "Dont label anything. I want the response to be ready to post on LinkedIn. Also dont put any dashes, bullets, atricks or anything. all i want is plain text",
+            },
+            {
+              role: "user",
+              content: `Create a post structured as a dialogue between two people with opposing views on ${opposingViewsTopics[i]}. The dialogue should consist of five exchanges where each person presents their perspective concisely. Each statement in the dialouge has to be consice, straight to the point and short. After the dialogue, include a transition where the person who supports the main argument (identified as "You") explains why they hold their position and then invites the audience to discuss. Again, You are supporting the topic, and the person you are conversing is against it.
+  
+            1. **Person A (Anti ${opposingViewsTopics[i]}):** Brief statement supporting ${opposingViewsTopics[i]}.
+            2. **You (Pro ${opposingViewsTopics[i]}):** Concise counter-argument against ${opposingViewsTopics[i]}.
+            3. **Person A:** Further support for ${opposingViewsTopics[i]}.
+            4. **You:** Deeper insight into the drawbacks of ${opposingViewsTopics[i]}.
+            5. **Person A:** Mention of potential benefits of ${opposingViewsTopics[i]}.
+            6. **You:** Final point emphasizing the negatives or risks associated with ${opposingViewsTopics[i]}.
+            
+            **Transition to Audience:**
+            After the dialogue, [You] should address the audience directly, summarizing why they believe ${opposingViewsTopics[i]} should be approached with caution (or supported, depending on your stance). Encourage audience engagement by asking their views and experiences related to ${opposingViewsTopics[i]}.
+            `,
+            },
+          ],
+          model: "gpt-4",
+        });
+
+        let opposingViewsPost =
+          opposingViewsResponse.choices[0].message.content.trim();
+
+        image_url = imageGeneration(opposingViewsTopics[i]);
+        const newPost = {
+          topic: opposingViewsTopics[i],
+          content: opposingViewsPost,
+          image_url: image_url,
+        };
+
+        posts.push(newPost);
+      } catch (error) {
+        console.error("Error generating LinkedIn post:", error);
+      }
+    }
+  }
+}
+
+export async function generateStoryPost(storyTopics) {
+  for (let i = 0; i < storyTopics.length; i++) {
+    if (storyTopics[i] != "") {
+      console.log("Generate post #" + (i + 1));
+      try {
+        const storyPostResponse = await openai.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content:
+                "Dont label anything. I want the response to be ready to post on LinkedIn. Also dont put any dashes, bullets, atricks or anything. all i want is plain text. No call to actions and no promoting of my business",
+            },
+            {
+              role: "user",
+              content: `first line: Attention grabber about a lesson you learned regarding ${storyTopics[i]}. It should be ten tokens
+            skip a line and on the next one write 3 senteces telling a bit of the story where you lerened the lesson.
+            skip a line and on the next one write a 1 one liner that is the crux of the story
+            skip a line and on the next one finish the story and end off with the lesson you learned
+            Then end the post by saying something along the lines of your happy now that you know this`,
+            },
+          ],
+          model: "gpt-4",
+        });
+
+        const storyPost = storyPostResponse.choices[0].message.content.trim();
+
+        image_url = imageGeneration(storyTopics[i]);
+
+        const newPost = {
+          topic: storyTopics[i],
+          content: storyPost,
+          image_url: image_url,
+        };
+
+        posts.push(newPost);
+      } catch (error) {
+        console.error("Error generating LinkedIn post:", error);
+      }
+    }
+  }
+}
+
+export async function generatePollPost(pollTopics) {
+  for (let i = 0; i < storyTopics.length; i++) {
+    if (storyTopics[i] != "") {
+      try {
+        const pollPostResponse = await openai.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content:
+                "Dont label anything. I want the response to be ready to post on LinkedIn. you are funny and humorous",
+            },
+            {
+              role: "user",
+              content: `Given a specific topic for a LinkedIn poll post, generate a concise, engaging, and humorous poll post. The post should include a catchy title with emojis, a brief introduction explaining the significance of the topic, and two voting options each accompanied by a witty or funny sentence.
+            Topic: ${pollTopics[i]}
+            Title: Poll Title with Emojis
+            Introduction: [2-3 sentences explaining the topic]
+            Poll:
+            👍 Yes - [Funny or clever response supporting the idea]
+            👎 No - [Funny or clever response opposing the idea]`,
+            },
+          ],
+          model: "gpt-4",
+        });
+
+        const pollPost = pollPostResponse.choices[0].message.content.trim();
+
+        const newPost = {
+          topic: pollTopics[i],
+          content: pollPost,
+        };
+
+        posts.push(pollPost);
+      } catch (error) {
+        console.error("Error generating LinkedIn post:", error);
+      }
+    }
+  }
+}
+
+export function getPosts() {
+  return posts;
+}
+
+export async function imageGeneration(imageContent) {
+  const response = await openai.images.generate({
+    model: "dall-e-3",
+    prompt: imageContent,
+    n: 1,
+    size: "1024x1024",
   });
 
-  console.log(completion.choices[0]);
+  let image_url = response.data[0].url;
+
+  return image_url;
 }
-
-async function generateBulletPost(topic, client_profile) {
-  try {
-    const bulletPostResponse = await openai.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: "Dont label anything. I want the response to be ready to post on LinkedIn. Also dont put any dashes, bullets, atricks or anything. all i want is plain text"
-        },
-        {
-          role: "user",
-          content: `Create a compelling one-liner to grab attention for a LinkedIn post about ${topic}. The tone should be ${client_profile["personal_brand"]} and it should reflect the goal of ${client_profile["primary_goals"]}. It should be a rhetorical question thats counter intuitive to ${topic} and it should be 10 tokens. skip a line, then on the next line Create a one-liner follow-up that answers the question in hook. it should be 10 tokens. leave a blank line, and then in the next line, Give a 5 bullets about the hook and what it means that follows ${clientProfile["personal_brand"]} and has a tone of ${clientProfile["content_preferences"]}. each step should have a topic line and the next line is the info. Make the info part two sentences. Skip a line, and on the next line put a statement that leaves the reader feeling the authors tone of ${clientProfile["mission"]}. Should be an action statement. It should be 15 tokens`,
-        },
-      ],
-      model: "gpt-4o",
-    });
-
-    let bulletPost = bulletPostResponse.choices[0].message.content.trim();
-
-    if (bulletPost.startsWith('"') && bulletPost.endsWith('"')) {
-      bulletPost = bulletPost.slice(1, -1);
-    }
-
-    console.log(bulletPost);
-  } catch (error) {
-    console.error("Error generating LinkedIn post:", error);
-  }
-}
-
-async function generateStoryPost(topic, client_profile) {
-  try {
-    const bulletPostResponse = await openai.chat.completions.create({
-      messages: [
-        {
-          role: "system",
-          content: "Dont label anything. I want the response to be ready to post on LinkedIn. Also dont put any dashes, bullets, atricks or anything. all i want is plain text"
-        },
-        {
-          role: "user",
-          content: `first line: Attention grabber about a lesson you learned regarding ${topic}. It should be ten tokens
-          skip a line and on the next one write 3 senteces telling a bit of the story where you lerened the lesson. the tone should be ${clientProfile["personal_brand"]} and should be about ${clientProfile["mission"]}
-          skip a line and on the next one write a 1 one liner that is the crux of the story
-          skip a line and on the next one finish the story and end off with the lesson you learned
-          skip a line and on the next one tell the reader how they should try to impelement the lesson too in two senteces
-          skip a line and on the next one call to action that follows the story.
-          the story should be corporate appropriate`,
-        },
-      ],
-      model: "gpt-4o",
-    });
-
-    let bulletPost = bulletPostResponse.choices[0].message.content.trim();
-
-    if (bulletPost.startsWith('"') && bulletPost.endsWith('"')) {
-      bulletPost = bulletPost.slice(1, -1);
-    }
-
-    console.log(bulletPost);
-  } catch (error) {
-    console.error("Error generating LinkedIn post:", error);
-  }
-}
-const clientProfile = {
-  primary_goals:
-    "generate leads, find employees, spread awareness, celebrate milestones, attract investors",
-  mission: "make technology accessible to underserved populations",
-  core_values: "equality, community support, technology improving lives",
-  target_audience: "investors, potential clients, partners",
-  key_achievements:
-    "campaign in public schools in East Plano and Dallas improved student grades",
-  leadership_style: "empowering and facilitative",
-  personal_brand: "supportive and innovative",
-  content_preferences:
-    "regular updates, technology trends (AI-driven), startup challenges",
-  posting_schedule: "posts at least three times a week",
-  inspirations: "influenced by Kai Sinat",
-  success_metrics:
-    "engagement metrics (clicks and interactions), lead conversions",
-};
-
-const topic = "AI in videogames";
-generateStoryPost(topic, clientProfile);

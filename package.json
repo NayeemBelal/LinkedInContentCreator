@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node prompt.js"
+    "dev": "node contentCreator.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "openai": "^4.47.1"
+    "googleapis": "^137.1.0",
+    "openai": "^4.47.1",
+    "xlsx": "^0.18.5"
   }
 }
