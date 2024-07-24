@@ -1,5 +1,7 @@
 import { google } from "googleapis";
 import fs from "fs";
+import axios from "axios";
+import { Readable } from "stream";
 
 const credentials = JSON.parse(
   fs.readFileSync(
@@ -44,6 +46,45 @@ export async function createSheet(posts) {
       fileId: spreadsheetId,
       fields: "id",
     });
+
+    // Handle image uploads and permissions
+    for (const post of posts) {
+      if (post.image) {
+        const imageResponse = await axios({
+          url: post.image,
+          responseType: "arraybuffer",
+        });
+
+        const buffer = Buffer.from(imageResponse.data, "binary");
+
+        const stream = Readable.from(buffer);
+
+        const fileMetadata = {
+          name: "Image",
+        };
+
+        const media = {
+          mimeType: "image/jpeg",
+          body: stream,
+        };
+
+        const file = await drive.files.create({
+          resource: fileMetadata,
+          media: media,
+          fields: "id, webContentLink",
+        });
+
+        await drive.permissions.create({
+          resource: {
+            type: "anyone",
+            role: "writer",
+          },
+          fileId: file.data.id,
+        });
+
+        post.image = file.data.webContentLink;
+      }
+    }
 
     const values = [
       ["Date", "Topic", "Content", "Image"],

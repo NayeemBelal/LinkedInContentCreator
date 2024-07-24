@@ -1,20 +1,35 @@
 import {
+  generateImageWithText,
+  generateLiveContent,
   generateOpposingViews,
+  generatePollPost,
   generateStoryPost,
   getPosts,
 } from "./prompt.js";
 import { generatePostDates } from "./generateDates.js";
 import { createSheet } from "./createSheets.js";
 
-async function generateAllPosts(opposingViewsTopics, storyTopics) {
-  console.log("Generating opposing views post:");
+async function generateAllPosts(
+  liveContentLink,
+  liveContentTopics,
+  opposingViewsTopics,
+  storyTopics,
+  imageTopics
+) {
+  console.log("\nGenerating live content posts:");
+  await generateLiveContent(liveContentLink, liveContentTopics);
+
+  console.log("Generating opposing views posts:");
   await generateOpposingViews(opposingViewsTopics);
 
-  console.log("\nGenerating story post:");
+  console.log("\nGenerating story posts:");
   await generateStoryPost(storyTopics);
 
+  console.log("Generating multimedia posts:");
+  await generateImageWithText(imageTopics);
+
   let posts = getPosts();
-  shuffleArray(posts);
+  shuffleArray(posts, 1);
   let postDates = generatePostDates(posts.length);
 
   posts = posts.map((post, index) => ({
@@ -52,33 +67,54 @@ const client_profile = {
     "Focus on post impressions and profile views to gauge the success of LinkedIn activities.",
 };
 
-const topic = [
-  "The Impact of Tech on Youth Education in Southern U.S.",
-  "Celebrating a Year of Volunteering with Local Youth Startups",
-  "Why I love powerlifting",
-  "I love helping young entreprenuers success",
-  "I grew up playing chess and I love chess so I want to talk about how my brain developed better because of chess",
+const liveContentLink = [
+  "https://newatlas.com/technology/chatgpt-is-funnier/",
+  "https://www.ben-evans.com/benedictevans/2024/7/9/the-ai-summer",
 ];
 
-const opposingViewsTopics = [
-  "AI should not replace humans in video game creation",
-  "Chess is a super great way to train you brain",
-  "Mentoring young entreprenuers should be a top priority",
-  "powerlifting has a lot to do with startups",
+const liveContentTopics = [
+  "AI is funnier than humans",
+  "Using the artle, talk about AI growth this summer.",
 ];
 
 const storyTopics = [
-  "A story about how I helped a noob entreprenuer navigate the business world",
-  "I grew up playing chess and I love chess so I want to talk about how my brain developed better because of chess",
-  "Building a bond with the powerlifting community",
-  "How I learned my lesson to become more secure in terms of cybersecurty.",
+  "A funny story I heard from someone else about how they helped a young startup with a contraint and what he learnd from it",
+  "Tell the people about a time that you did something funnily embarassing and learned from it",
+  "A funny story I heard from someone else about how they helped a young startup with a contraint and what he learnd from it",
+  "How much AI is changing the work",
+  "How the current job market is so bad and the tips you woud give to new grads",
+  "A story about your love of video games adn how you dont want AI to change everything",
+  "How you one time helped a new grad fix their resume and the lessons you would give to other new grads.",
+  "Startup mentourship is good",
+  "cybersecurity is way differnet than is one even 5 years ago",
+  "Startup problems",
 ];
 
-generateAllPosts(opposingViewsTopics, storyTopics);
+const opposingViewsTopics = [
+  "AI is taking over the job market",
+  "The difference between a good engineer and a great one",
+  "Cybersecurity is super important in todays world",
+];
 
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
+const imageTopics = [
+  "AI is changing everything",
+  "AI is replacing too many jobs",
+  "Cybersecurity is important",
+  "keep gaming naturally created, not AI generated",
+  "Startup mentour",
+];
+
+generateAllPosts(
+  liveContentLink,
+  liveContentTopics,
+  opposingViewsTopics,
+  storyTopics,
+  imageTopics
+);
+
+function shuffleArray(array, n) {
+  for (let i = array.length - 1; i > n; i--) {
+    let j = Math.floor(Math.random() * (i - n + 1)) + n;
     [array[i], array[j]] = [array[j], array[i]];
   }
 }

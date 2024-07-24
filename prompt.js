@@ -12,12 +12,11 @@ export async function generateLiveContent(liveContentLink, liveContentTopics) {
           messages: [
             {
               role: "system",
-              content:
-                "Dont label anything. I want the response to be ready to post on LinkedIn. Also dont put any dashes, bullets, atricks or anything. all i want is plain text",
+              content: `Dont label anything. I want the response to be ready to post on LinkedIn. Also dont put any dashes, bullets, atricks or anything. all i want is plain text. The post will be written on this article at this link ${liveContentLink[i]}`,
             },
             {
               role: "user",
-              content: `Given the article link ${liveContentLink[i]}, create a concise and engaging LinkedIn post. Start with a catchy hook sentence to grab attention. Follow with a three-sentence summary that captures the main points of the article. Then, provide a personal opinion on the topic to add a unique perspective. Conclude with a humorous one-liner that ties back to the theme of the article. The post should be easy to read, with each section clearly separated, and without directly mentioning the article link or title.`,
+              content: `Given the article link ${liveContentLink[i]}, create a concise and engaging LinkedIn post about the article at this link ${liveContentLink[i]} with this topic: ${liveContentTopics[i]}. Start with a catchy hook sentence to grab attention. Follow with a three-sentence summary that captures the main points of the article. Then, provide a personal opinion on the topic to add a unique perspective. Conclude with a one-liner that ties back to the theme of the article. The post should be easy to read, with each section clearly separated. At then, say something like, read more here and link the article.`,
             },
           ],
           model: "gpt-4",
@@ -26,12 +25,12 @@ export async function generateLiveContent(liveContentLink, liveContentTopics) {
         let liveContentPost =
           liveContentResponse.choices[0].message.content.trim();
 
-        image_url = imageGeneration(liveContentTopics[i]);
+        let image_url = await imageGeneration(liveContentTopics[i]);
 
         const newPost = {
           topic: liveContentTopics[i],
           content: liveContentPost,
-          image_url: image_url,
+          image: image_url,
         };
 
         posts.push(newPost);
@@ -58,11 +57,11 @@ export async function generateOpposingViews(opposingViewsTopics) {
               role: "user",
               content: `Create a post structured as a dialogue between two people with opposing views on ${opposingViewsTopics[i]}. The dialogue should consist of five exchanges where each person presents their perspective concisely. Each statement in the dialouge has to be consice, straight to the point and short. After the dialogue, include a transition where the person who supports the main argument (identified as "You") explains why they hold their position and then invites the audience to discuss. Again, You are supporting the topic, and the person you are conversing is against it.
   
-            1. **Person A (Anti ${opposingViewsTopics[i]}):** Brief statement supporting ${opposingViewsTopics[i]}.
+            1. **my friend (Anti ${opposingViewsTopics[i]}):** Brief statement supporting ${opposingViewsTopics[i]}.
             2. **You (Pro ${opposingViewsTopics[i]}):** Concise counter-argument against ${opposingViewsTopics[i]}.
-            3. **Person A:** Further support for ${opposingViewsTopics[i]}.
+            3. **my friend:** Further support for ${opposingViewsTopics[i]}.
             4. **You:** Deeper insight into the drawbacks of ${opposingViewsTopics[i]}.
-            5. **Person A:** Mention of potential benefits of ${opposingViewsTopics[i]}.
+            5. **my friend:** Mention of potential benefits of ${opposingViewsTopics[i]}.
             6. **You:** Final point emphasizing the negatives or risks associated with ${opposingViewsTopics[i]}.
             
             **Transition to Audience:**
@@ -76,11 +75,12 @@ export async function generateOpposingViews(opposingViewsTopics) {
         let opposingViewsPost =
           opposingViewsResponse.choices[0].message.content.trim();
 
-        image_url = imageGeneration(opposingViewsTopics[i]);
+        let image_url = await imageGeneration(opposingViewsTopics[i]);
+
         const newPost = {
           topic: opposingViewsTopics[i],
           content: opposingViewsPost,
-          image_url: image_url,
+          image: image_url,
         };
 
         posts.push(newPost);
@@ -115,14 +115,29 @@ export async function generateStoryPost(storyTopics) {
           model: "gpt-4",
         });
 
+
+
+//         Write a LinkedIn post about coding. The post should be informal, concise, and clear. no hashtags or emojis in the post. Start with a short, catchy sentence that is a fact you are arguing. Use short sentences and a conversational tone throughout the post. Avoid cheesy catchlines, lessons learned, or abbreviations. End with a more human, sometimes jokey note. Make sure the post is engaging and relatable. Here is an example of the style I like:
+
+// Write the LinkedIn post in a similar style:
+
+// LLMs are fascinating but flawed
+
+// We hear a lot about Large Language Models (LLMs) these days. They can write essays, code, and even chat like humans. Sounds impressive, right? But let's be real—are they really that useful?
+
+// Sure, LLMs can generate text, but they often miss the mark. They lack true understanding and can get facts wrong. It's like having a conversation with someone who's great at pretending they know everything but can't actually do much.
+
+// In the end, LLMs are a fun tool but not the game-changer they're hyped up to be. They’re more like a novelty than a necessity.
+
+// Let’s keep our expectations in check and maybe enjoy a good laugh at their quirky outputs. 
         const storyPost = storyPostResponse.choices[0].message.content.trim();
 
-        image_url = imageGeneration(storyTopics[i]);
+        let image_url = await imageGeneration(storyTopics[i]);
 
         const newPost = {
           topic: storyTopics[i],
           content: storyPost,
-          image_url: image_url,
+          image: image_url,
         };
 
         posts.push(newPost);
@@ -134,8 +149,8 @@ export async function generateStoryPost(storyTopics) {
 }
 
 export async function generatePollPost(pollTopics) {
-  for (let i = 0; i < storyTopics.length; i++) {
-    if (storyTopics[i] != "") {
+  for (let i = 0; i < pollTopics.length; i++) {
+    if (pollTopics[i] != "") {
       try {
         const pollPostResponse = await openai.chat.completions.create({
           messages: [
@@ -165,13 +180,31 @@ export async function generatePollPost(pollTopics) {
           content: pollPost,
         };
 
-        posts.push(pollPost);
+        posts.push(newPost);
       } catch (error) {
         console.error("Error generating LinkedIn post:", error);
       }
     }
   }
 }
+
+export async function generateImageWithText(imageTopics) {
+  for (let i = 0; i < imageTopics.length; i++) {
+    if (imageTopics[i] != "") {
+      let image_url = await imageGeneration(imageTopics[i]);
+
+      const newPost = {
+        topic: imageTopics[i],
+        content: "Multimedia content. See image link for post content",
+        image: image_url,
+      };
+
+      posts.push(newPost);
+    }
+  }
+}
+
+// Helper functions
 
 export function getPosts() {
   return posts;
@@ -189,3 +222,40 @@ export async function imageGeneration(imageContent) {
 
   return image_url;
 }
+
+const liveContentLink = [
+  "https://newatlas.com/technology/chatgpt-is-funnier/",
+  "https://www.ben-evans.com/benedictevans/2024/7/9/the-ai-summer",
+];
+
+const liveContentTopics = [
+  "AI is funnier than humans",
+  "Using the artle, talk about AI growth this summer.",
+];
+
+const storyTopics = [
+  "A funny story I heard from someone else about how they helped a young startup with a contraint and what he learnd from it",
+  "Tell the people about a time that you did something funnily embarassing and learned from it",
+  "A funny story I heard from someone else about how they helped a young startup with a contraint and what he learnd from it",
+  "How much AI is changing the work",
+  "How the current job market is so bad and the tips you woud give to new grads",
+  "A story about your love of video games adn how you dont want AI to change everything",
+  "How you one time helped a new grad fix their resume and the lessons you would give to other new grads.",
+  "Startup mentourship is good",
+  "cybersecurity is way differnet than is one even 5 years ago",
+  "Startup problems",
+];
+
+const opposingViewsTopics = [
+  "AI is taking over the job market",
+  "The difference between a good engineer and a great one",
+  "Cybersecurity is super important in todays world",
+];
+
+const imageTopics = [
+  "AI is changing everything",
+  "AI is replacing too many jobs",
+  "Cybersecurity is important",
+  "keep gaming naturally created, not AI generated",
+  "Startup mentour",
+];
